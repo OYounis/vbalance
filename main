@@ -1,0 +1,67 @@
+#!/bin/csh
+set password = "vBalance123"
+echo "------------- WELCOME TO vBALANCE -------------"
+cat help
+while (1)
+    printf "  vBalance [Input] : Enter ID or Fist/Last Name: "
+    set credentials = $<
+    set test = `grep "$credentials" employees`
+    echo "  vBalance [Info] credentials: found record: $test"
+    if ("$test" == "") then
+        echo "  vBalance [Error] credentials: Wrong ID/Name!"
+        continue
+    endif
+    break
+end
+while (1)
+    printf "> "
+    set command = $<
+    if($command == "help") then
+        cat help
+    else if ($command == "add-record") then
+        ./addrecord
+    else if ($command == "request-leave") then
+        ./reqleave $credentials
+    else if ($command == "print-record") then
+        printf "  vBalance [Input] : Enter Password: "
+        set password_in = $<
+        if ("$password" == "$password_in") then
+            echo "  vBalance [Info] printing company records"
+            echo ""
+            awk '{print $0}' employees
+            echo ""
+            echo "  ALB -> Annual Leave Balance"
+            echo "  SLB -> Sick Leave Balance"
+            echo "  ULB -> Unpaid Leave Balance"
+        else 
+            echo "vBalance [Error] credentials: Wrong Password!"
+        endif
+    else if ($command == "my-record") then
+        echo "  vBalance [Info] printing employee records"
+        set cred = `grep "$credentials" employees`
+        set first_name = `echo $cred | awk '{print$1}'`
+        set last_name = `echo $cred | awk '{print$2}'`
+        set id = `echo $cred | awk '{print$3}'`
+        set alb = `echo $cred | awk '{print$4}'`
+        set slb = `echo $cred | awk '{print$5}'`
+        set ulb = `echo $cred | awk '{print$6}'`
+        echo ""
+        echo "  Full Name            : $first_name $last_name"
+        echo "  Company ID           : $id"
+        echo "  Annual Leave Balance : $alb"
+        echo "  Sick Leave Balance   : $slb"
+        echo "  Unpaid Leave Balance : $ulb"
+        echo ""
+    else if ($command == "vacations") then
+        cat vacations
+    else if ($command == "rem-record") then
+        printf "  vBalance [Input] : Enter ID or Fist/Last Name: "
+        set to_delete = $<
+        sed -i "/$to_delete/d" employees
+    else if ($command == "quit") then
+        echo "  vBalance [Info] quiting..."
+        break
+    else
+        echo "  vBalance [Error] Unknown Input: Command $command not found. Type "help" to print available commands"
+    endif
+end

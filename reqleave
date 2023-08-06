@@ -1,0 +1,52 @@
+#!/bin/csh
+
+set cred = `grep "$argv" employees`
+echo "  $cred"
+echo "  vBalance [Info] fetching data..."
+set first_name = `echo $cred | awk '{print$1}'`
+set last_name = `echo $cred | awk '{print$2}'`
+set id = `echo $cred | awk '{print$3}'`
+set alb = `echo $cred | awk '{print$4}'`
+set slb = `echo $cred | awk '{print$5}'`
+set ulb = `echo $cred | awk '{print$6}'`
+
+printf "  vBalance [Input] : Enter Leave Type (annual-sick-unpaid): "
+set leave = $<
+printf "  vBalance [Input] : How Many Days Days? "
+@ days = $<
+if ("$leave" == "unpaid") then
+    echo "  vBalance [Info] processing unpaid leave request"
+    if ($days > 3) then
+        echo "  vBalance [Leave Request] DENIED: Maximum Unpaid Consecutive Leave is 3 Days!"
+    else if (($ulb - $days) >= 0) then
+        echo "  vBalance [Leave Request] ACCEPTED: Leave Request is Accepted!"
+        @ ulb = $ulb - $days
+    else
+        echo "  vBalance [Leave Request] DENIED: Not Enough Leave Days Available!"
+        echo "  vBalance [Leave Request] DENIED: Available Days ($ulb)"
+    endif
+else if ("$leave" == "sick") then
+    echo "  vBalance [Info] processing sick leave request"
+    if (($slb - $days) >= 0) then
+        echo "  vBalance [Leave Request] ACCEPTED: Leave Request is Accepted!"
+        @ slb = $slb - $days
+    else
+        echo "  vBalance [Leave Request] DENIED: Not Enough Leave Days Available!"
+        echo "  vBalance [Leave Request] DENIED: Available Days ($slb)"
+    endif
+else if ("$leave" == "annual") then
+    echo "  vBalance [Info] processing annual leave request"
+    if (($alb - $days) >= 0) then
+        echo "  vBalance [Leave Request] ACCEPTED: Leave Request is Accepted!"
+        @ alb = $alb - $days
+    else
+        echo "  vBalance [Leave Request] DENIED: Not Enough Leave Days Available!"
+        echo "  vBalance [Leave Request] DENIED: Available Days ($alb)"
+    endif
+else
+    echo "  vBalance [Error] Leave Request: Please enter a valid leave type (annual - sick - unpaid)"
+endif
+
+sed -i "/$id/d" employees
+printf "%-10s %-10s \t%-10s \t%-5s \t%-5s \t%-5s \t%-5s \t%-5s\n" "$first_name" "$last_name" "$id" "$alb" "$slb" "$ulb" >> employees
+

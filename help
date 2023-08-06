@@ -1,0 +1,28 @@
+Description: 
+    Employee vacation balance record
+
+Supported Commands:
+    help
+        Print this help message.
+
+    add-record
+        Add new employee to the vacation record.
+
+    rem-record
+        Remove employee from record.
+
+    request-leave
+        Send leave request (Annual - sick - unpaid).
+    
+    print-record
+        Display the entire company vacation record.
+    
+    my-record
+        Display your record.
+    
+    vacations
+        Display public holidays.
+    
+    quit
+        Exit program.
+------------------------------------------------------------

@@ -1,0 +1,67 @@
+#!/bin/csh
+
+set first_name = ""
+set last_name = ""
+set id = ""
+
+while (1)
+    echo "Add First Name: "
+    set first_name = $<
+    
+    set test = `echo $first_name | grep "[0-9]"`
+    if ($test != "") then
+        echo "  vBalance [Error] first_name: Employee name should only contain letters!"
+        continue
+    endif
+    set test = `echo $last_name | grep " "`
+    if ("$test" != "") then
+        echo "  vBalance [Error] first_name: Employee first name must not contain spaces!"
+        continue
+    endif
+
+    break
+end
+while (1)
+    echo "Add Last Name: "
+    set last_name = $<
+    
+    set test = `echo $last_name | grep "[0-9]"`
+    if ($test != "") then
+        echo "  vBalance [Error] last_name: Employee name should only contain letters!"
+        continue
+    endif
+    set test = `echo $last_name | grep " "` 
+    if ("$test" != "") then
+        echo "  vBalance [Error] last_name: Employee last name must not contain spaces!"
+        continue
+    endif
+
+    break
+end
+
+while (1)
+    echo "ID: "
+    set id = $<
+
+    set test = `echo $id | grep "[0-9]\{6\}"`
+    if ($test != "") then
+        echo "  vBalance [Error] id: Company ID must be no more than 5 consecutive digits!"
+        continue
+    endif
+    set test = `echo $id | grep "[0-9]\{5\}"`
+    if ($test == "") then
+        echo "  vBalance [Error] id: Company ID must be no less than 5 consecutive digits!"
+        continue
+    endif
+    set test = `grep "$id" employees`
+    if ("$test" != "") then
+        echo "  vBalance [Error] id: Company ID already exists!"
+        echo "  $test"
+        continue
+    endif
+
+    break
+end
+
+printf "%-10s %-10s \t%-10s \t%-5s \t%-5s \t%-5s \t%-5s \t%-5s\n" "$first_name" "$last_name" "$id" "21" "12" "10" >> employees
+echo "  vBalance [Info] add record: Record Added"
