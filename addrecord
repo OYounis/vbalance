@@ -13,7 +13,7 @@ while (1)
         echo "  vBalance [Error] first_name: Employee name should only contain letters!"
         continue
     endif
-    set test = `echo $last_name | grep " "`
+    set test = `echo $first_name | grep " "`
     if ("$test" != "") then
         echo "  vBalance [Error] first_name: Employee first name must not contain spaces!"
         continue
