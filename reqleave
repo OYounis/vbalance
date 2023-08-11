@@ -9,36 +9,123 @@ set id = `echo $cred | awk '{print$3}'`
 set alb = `echo $cred | awk '{print$4}'`
 set slb = `echo $cred | awk '{print$5}'`
 set ulb = `echo $cred | awk '{print$6}'`
+set lul = `echo $cred | awk '{print$7" "$8" "$9" "$10" "$11" "$12}'`
+set lcul = `echo $cred | awk '{print$13}'`
+echo $lul
+echo $lcul
 
-printf "  vBalance [Input] : Enter Leave Type (annual-sick-unpaid): "
-set leave = $<
-printf "  vBalance [Input] : How Many Days Days? "
-@ days = $<
+echo "----- Leave Application -----"
+echo " Rules:"
+echo "        1- Employees cannot request more than 3 consecutive days of sick leave."
+echo "        2- Enter Dates in month/day format, e.g., 10/20 where 10 is the month and 2 is the day."
+echo ""
+while (1)
+    echo -n "  vBalance [Input] : Enter Leave Type (annual-sick-unpaid) : "
+    set leave = $<
+    if ($leave != "annual" && $leave != "sick" && $leave != "unpaid") then
+        echo "  vBalance [Error] Leave Request: Please enter a valid leave type (annual - sick - unpaid)"
+    else
+        break
+    endif
+end
+while (1)
+    echo -n "  vBalance [Input] : Leave Start Date? (e.g.: 10/30) : "
+    set start_date = $<
+    printf "  vBalance [Leave Request] Start Date : "
+    echo `date -d "$start_date"`
+    set epoch_start = `date -d"$start_date" +%s`
+    set epoch_today = `date +%s`
+
+    if (($epoch_start - $epoch_today) < 0) then
+        echo "  vBalance [Error] Leave Request: Start date cannot be in the past."
+        continue
+    endif
+
+    printf "  vBalance [Input] : Leave End Date? (e.g.: 10/30) : "
+    set end_date = $<
+    printf "  vBalance [Leave Request] End Date : "
+    echo `date -d "$end_date"`
+
+    set epoch_end = `date -d"$end_date" +%s`
+    @ days = (( $epoch_end - $epoch_start) / 86400) + 1
+    
+    if ( $days < 0) then
+        echo "  vBalance [Error] Leave Request: End date cannot come before start date."
+        continue
+    else
+        break
+    endif
+end
+
+set i = 0
+set days_i = $days
+echo "  vBalance [Info] Leave Request: Processing request start and end dates."
+while ($i < $days)
+    set check = `date '+%a' -d "$start_date $i days"`
+    if ($check == "Fri") then
+        @ days_i = $days_i - 1
+    else if ($check == "Sat") then
+        @ days_i = $days_i - 1
+    endif
+    @ i++
+end 
+
+echo "  vBalance [Info] Leave Request: Checking if leave intersects with a holiday."
+@ i = 1
+while ($i <= `awk 'END{print NR}' "vacations"`)
+    set vacation = `awk "FNR == $i {print}" "vacations"`
+    set epoch_vacation = `date -d"$vacation" '+%s'`
+    set check = `date '+%a' -d "$vacation"`
+    if (($check == "Fri") || ($check == "Sat")) then
+        @ i++
+        continue
+    endif
+    if (($epoch_vacation > $epoch_start) && ($epoch_vacation < $epoch_end)) then
+        @ days_i = $days_i - 1
+    endif
+    @ i++
+end
+
+printf "  vBalance [Leave Request] Leave Days : "
+echo $days_i
+
 if ("$leave" == "unpaid") then
     echo "  vBalance [Info] processing unpaid leave request"
-    if ($days > 3) then
+    set lul_epoch = `date -d"$lul" +%s`
+    if ($days_i > 3) then #check if unpaid leave is more than three days
         echo "  vBalance [Leave Request] DENIED: Maximum Unpaid Consecutive Leave is 3 Days!"
-    else if (($ulb - $days) >= 0) then
+    # check if the the unpaid leave is an extension of the one before.
+    # the unpaid leave added with last unpaid leave should not exceed 3 days.
+    else if (($epoch_end - $lul_epoch <= 1) && ($days_i + $lcul > 3)) then 
+        echo "  vBalance [Leave Request] DENIED: Maximum Unpaid Consecutive Leave is 3 Days!"
+    else if (($ulb - $days_i) >= 0) then
         echo "  vBalance [Leave Request] ACCEPTED: Leave Request is Accepted!"
-        @ ulb = $ulb - $days
+        @ ulb = $ulb - $days_i
+        set lul = `date -d "$end_date"`
+        # calculate the unmber of consecutive sick leave days
+        if (($epoch_end - $lul_epoch <= 1)) then
+            @ lcul = $lcul + $days_i
+        else
+            @ lcul = $days_i
+        endif
     else
         echo "  vBalance [Leave Request] DENIED: Not Enough Leave Days Available!"
         echo "  vBalance [Leave Request] DENIED: Available Days ($ulb)"
     endif
 else if ("$leave" == "sick") then
     echo "  vBalance [Info] processing sick leave request"
-    if (($slb - $days) >= 0) then
+    if (($slb - $days_i) >= 0) then
         echo "  vBalance [Leave Request] ACCEPTED: Leave Request is Accepted!"
-        @ slb = $slb - $days
+        @ slb = $slb - $days_i
     else
         echo "  vBalance [Leave Request] DENIED: Not Enough Leave Days Available!"
         echo "  vBalance [Leave Request] DENIED: Available Days ($slb)"
     endif
 else if ("$leave" == "annual") then
     echo "  vBalance [Info] processing annual leave request"
-    if (($alb - $days) >= 0) then
+    if (($alb - $days_i) >= 0) then
         echo "  vBalance [Leave Request] ACCEPTED: Leave Request is Accepted!"
-        @ alb = $alb - $days
+        @ alb = $alb - $days_i
     else
         echo "  vBalance [Leave Request] DENIED: Not Enough Leave Days Available!"
         echo "  vBalance [Leave Request] DENIED: Available Days ($alb)"
@@ -48,5 +135,4 @@ else
 endif
 
 sed -i "/$id/d" employees
-printf "%-10s %-10s \t%-10s \t%-5s \t%-5s \t%-5s \t%-5s \t%-5s\n" "$first_name" "$last_name" "$id" "$alb" "$slb" "$ulb" >> employees
-
+printf "%-10s %-10s \t%-10s \t%-5s \t%-5s \t%-5s \t%-5s \t%-5s\n" "$first_name" "$last_name" "$id" "$alb" "$slb" "$ulb" "$lul" "$lcul">> employees

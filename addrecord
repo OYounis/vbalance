@@ -5,52 +5,35 @@ set last_name = ""
 set id = ""
 
 while (1)
-    echo "Add First Name: "
+    echo -n "  vBalance [Input] : Add First Name : "
     set first_name = $<
     
-    set test = `echo $first_name | grep "[0-9]"`
-    if ($test != "") then
-        echo "  vBalance [Error] first_name: Employee name should only contain letters!"
+    set test = `echo $first_name | grep "^[A-Za-z]\+$"`
+    if ($test == "") then
+        echo "  vBalance [Error] first_name: Employee name should only contain letters and no spaces!"
         continue
     endif
-    set test = `echo $first_name | grep " "`
-    if ("$test" != "") then
-        echo "  vBalance [Error] first_name: Employee first name must not contain spaces!"
-        continue
-    endif
-
     break
 end
 while (1)
-    echo "Add Last Name: "
+    echo -n "  vBalance [Input] : Add Last Name : "
     set last_name = $<
     
-    set test = `echo $last_name | grep "[0-9]"`
-    if ($test != "") then
-        echo "  vBalance [Error] last_name: Employee name should only contain letters!"
+    set test = `echo $first_name | grep "^[A-Za-z]\+$"`
+    if ($test == "") then
+        echo "  vBalance [Error] first_name: Employee name should only contain letters and no spaces!"
         continue
     endif
-    set test = `echo $last_name | grep " "` 
-    if ("$test" != "") then
-        echo "  vBalance [Error] last_name: Employee last name must not contain spaces!"
-        continue
-    endif
-
     break
 end
 
 while (1)
-    echo "ID: "
+    echo -n "  vBalance [Input] : Add ID : "
     set id = $<
 
-    set test = `echo $id | grep "[0-9]\{6\}"`
-    if ($test != "") then
-        echo "  vBalance [Error] id: Company ID must be no more than 5 consecutive digits!"
-        continue
-    endif
-    set test = `echo $id | grep "[0-9]\{5\}"`
+    set test = `echo $id | grep "^[0-9]\{5\}$"`
     if ($test == "") then
-        echo "  vBalance [Error] id: Company ID must be no less than 5 consecutive digits!"
+        echo "  vBalance [Error] id: Company ID must be exactly 5 consecutive digits!"
         continue
     endif
     set test = `grep "$id" employees`
@@ -63,5 +46,5 @@ while (1)
     break
 end
 
-printf "%-10s %-10s \t%-10s \t%-5s \t%-5s \t%-5s \t%-5s \t%-5s\n" "$first_name" "$last_name" "$id" "21" "12" "10" >> employees
+printf "%-10s %-10s \t%-10s \t%-5s \t%-5s \t%-5s \t%-15s \t%-5s\n" "$first_name" "$last_name" "$id" "21" "11" "10" "Thu Sep 21 00:00:00 EEST 2022" "0">> employees
 echo "  vBalance [Info] add record: Record Added"

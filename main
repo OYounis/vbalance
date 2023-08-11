@@ -30,30 +30,37 @@ while (1)
             echo ""
             awk '{print $0}' employees
             echo ""
-            echo "  ALB -> Annual Leave Balance"
-            echo "  SLB -> Sick Leave Balance"
-            echo "  ULB -> Unpaid Leave Balance"
+            echo "  ALB  -> Annual Leave Balance"
+            echo "  SLB  -> Sick Leave Balance"
+            echo "  ULB  -> Unpaid Leave Balance"
+            echo "  LUL  -> Last Unpaid Leave Date"
+            echo "  LCUL -> Last Consecutive Unpaid Leave Days"
         else 
             echo "vBalance [Error] credentials: Wrong Password!"
         endif
     else if ($command == "my-record") then
-        echo "  vBalance [Info] printing employee records"
+        echo "  vBalance [Info] printing employee record"
         set cred = `grep "$credentials" employees`
         set first_name = `echo $cred | awk '{print$1}'`
         set last_name = `echo $cred | awk '{print$2}'`
-        set id = `echo $cred | awk '{print$3}'`
-        set alb = `echo $cred | awk '{print$4}'`
-        set slb = `echo $cred | awk '{print$5}'`
-        set ulb = `echo $cred | awk '{print$6}'`
+        set id   = `echo $cred | awk '{print$3}'`
+        set alb  = `echo $cred | awk '{print$4}'`
+        set slb  = `echo $cred | awk '{print$5}'`
+        set ulb  = `echo $cred | awk '{print$6}'`
+        set lul  = `echo $cred | awk '{print$7" "$8" "$9" "$12}'`
+        set lcul = `echo $cred | awk '{print$13}'`
         echo ""
-        echo "  Full Name            : $first_name $last_name"
-        echo "  Company ID           : $id"
-        echo "  Annual Leave Balance : $alb"
-        echo "  Sick Leave Balance   : $slb"
-        echo "  Unpaid Leave Balance : $ulb"
+        echo "  Full Name                   : $first_name $last_name"
+        echo "  Company ID                  : $id"
+        echo "  Annual Leave Balance        : $alb Days"
+        echo "  Sick Leave Balance          : $slb Days"
+        echo "  Unpaid Leave Balance        : $ulb Days"
+        echo "  Last Unpaid Leave Date      : $lul"
+        echo "  Last Consecutive Leave Days : $lcul Days"
         echo ""
     else if ($command == "vacations") then
         cat vacations
+        echo ""
     else if ($command == "rem-record") then
         printf "  vBalance [Input] : Enter ID or Fist/Last Name: "
         set to_delete = $<
